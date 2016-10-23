@@ -4,24 +4,29 @@ app.config(function ($routeProvider) {
 // Routes to load your new and edit pages with new and edit controllers attached to them!
 	$routeProvider
 
-	.when('/',{
+	.when('/index',{
 		templateUrl: 'partials/login.html',
 		controller: 'loginController'
 	})
 
-	.when('/dashboard',{
+	.when('/',{
 		templateUrl: 'partials/dashboard.html',
 		controller: 'dashController'
 	})
 
-	.when('/poll/:poll_id',{
-		templateUrl: 'partials/poll.html',
-		controller: 'viewPollController'
+	.when('/question/:question_id',{
+		templateUrl: 'partials/question.html',
+		controller: 'viewQuestionController'
 	})
 
-	.when('/create',{
+	.when('/new_question',{
 		templateUrl: 'partials/create.html',
 		controller: 'createController'
+	})
+
+	.when('/question/:question_id/new_answer',{
+		templateUrl: 'partials/answer.html',
+		controller: 'viewQuestionController'
 	})
 
 	// .when('/delete/:poll_id',{
@@ -30,48 +35,54 @@ app.config(function ($routeProvider) {
 	// })
 
 	.otherwise({
-		redirectTo: '/'
+		redirectTo: '/index'
 	});
 });
 
-app.factory('pollFactory', ['$http', function($http) {
+app.factory('questionFactory', ['$http', function($http) {
 	var factory = {};
 
-	factory.login = function(user, callback){
-		$http.post('/login', user).then(function(response){
-			callback(response.data);
-		});
-	};
+	// factory.login = function(user, callback){
+	// 	$http.post('/login', user).then(function(response){
+	// 		callback(response.data);
+	// 	});
+	// };
 
 
-	factory.getPolls = function(callback){
+	factory.getQuestions = function(callback){
 		$http.get('/dashboard').then(function(response){
 			callback(response.data);
 		});
 	};
 
 
-	factory.create = function(poll, callback){
-		$http.post('/create', poll).then(function(response){
+	factory.create = function(question, callback){
+		$http.post('/create', question).then(function(response){
 			callback(response.data);
 		});
 	};
 
 
-	factory.delete = function(poll, callback){
-		$http.delete('/delete/'+poll._id).then(function(response){
+	factory.delete = function(question, callback){
+		$http.delete('/delete/'+question._id).then(function(response){
 			callback();
 		});
 	};
 
-	factory.show = function(poll_id, callback){
-		$http.get('/poll/'+poll_id).then(function(response){
+	factory.show = function(question_id, callback){
+		$http.get('/question/'+question_id).then(function(response){
 			callback(response.data);
 		});
 	};
 
-	factory.vote = function(poll_id, option, callback){
-		$http.post('/vote/'+poll_id, {option: option}).then(function(response){
+	factory.like = function(question_id, answer, callback){
+		$http.post('/like/'+question_id, {answer: answer}).then(function(response){
+			callback(response.data);
+		});
+	};
+
+	factory.answer = function(question_id, answer, callback){
+		$http.post('/question/'+question_id+'/answer', answer).then(function(response){
 			callback(response.data);
 		});
 	};
@@ -125,7 +136,7 @@ app.factory('userFactory', ['$http', function($http) {
 
 }]);
 
-app.controller('loginController', function($scope, pollFactory, userFactory, $routeParams, $location, $cookies, $rootScope) {
+app.controller('loginController', function($scope, questionFactory, userFactory, $routeParams, $location, $cookies, $rootScope) {
 /*
 	THIS INDEX METHOD ACCESSES THE FRIENDS FACTORY AND RUNS THE FRIENDS INDEX.
 	WE MIGHT RE USE INDEX A FEW TIMES, SO TO MINIMIZE REPETITION WE SET IT AS A VARIABLE.
@@ -134,27 +145,33 @@ app.controller('loginController', function($scope, pollFactory, userFactory, $ro
 		userFactory.login($scope.user, function(data){
 			console.log($scope.user);
 			console.log(data);
-			$cookies.username = $scope.user.name;		
-			console.log($cookies.username);
-			$location.url('/dashboard');
+			$location.url('/');
 		});
 	};
 
 });
 
-app.controller('createController', function($scope, pollFactory, userFactory, $routeParams, $location, $cookies, $rootScope){
+app.controller('createController', function($scope, questionFactory, userFactory, $routeParams, $location, $cookies, $rootScope){
 
-	$scope.addPoll = function(){
-		$scope.newPoll.author = $cookies.username;
-		console.log($scope.newPoll);
+	userFactory.getUser(function(user){
+		if(!user.username){
+			$location.url('/index');
+		} else {
+			$scope.username = user.username;
+		}
+	});	
+
+	$scope.addQuestion = function(){
+		$scope.newQuestion.author = $scope.username;
+		console.log($scope.newQuestion);
 		$scope.errors = {};
-		$scope.polls = {};
-		pollFactory.create($scope.newPoll, function(data){
+		$scope.questions = {};
+		questionFactory.create($scope.newQuestion, function(data){
 			if(data.errors){
 				console.log(data.errors);
 				$scope.errors = data.errors;
 			} else {
-				$location.url('/dashboard');
+				$location.url('/');
 			}
 		})
 	}
@@ -179,42 +196,65 @@ app.controller('createController', function($scope, pollFactory, userFactory, $r
 	
 }); 
 
-app.controller('dashController', function($scope, pollFactory, userFactory, $routeParams, $location, $cookies, $rootScope) {
+app.controller('dashController', function($scope, questionFactory, userFactory, $routeParams, $location, $cookies, $rootScope) {
 
-	pollFactory.getPolls(function(data){
-		$scope.polls = data;
-		console.log(JSON.stringify($scope.polls, 0, 2))	
+	questionFactory.getQuestions(function(data){
+		$scope.questions = data;
+		console.log(JSON.stringify($scope.questions, 0, 2))	
 	});
 
 	userFactory.getUser(function(user){
-		$scope.username = user.username;
+		if(!user.username){
+			$location.url('/index');
+		} else {
+			$scope.username = user.username;
+		}
 	});		
 
-	$scope.delete = function(data){
-		pollFactory.delete(data, function(){
-			pollFactory.getPolls(function(data){
-				$scope.polls = data;
+	// $scope.delete = function(data){
+	// 	questionFactory.delete(data, function(){
+	// 		questionFactory.getQuestions(function(data){
+	// 			$scope.questions = data;
+	// 		});
+	// 	});
+	// };
+
+});
+
+app.controller('viewQuestionController', function($scope, questionFactory, userFactory, $routeParams, $location, $cookies, $rootScope){
+
+	questionFactory.show($routeParams.question_id, function(data){
+		$scope.question = data;
+	});
+
+	$scope.like = function(answer){
+		questionFactory.like($routeParams.question_id, answer, function(){
+			questionFactory.show($routeParams.question_id, function(data){
+				$scope.question = data;
 			});
 		});
 	};
 
-});
-
-app.controller('viewPollController', function($scope, pollFactory, userFactory, $routeParams, $location, $cookies, $rootScope){
-
-	pollFactory.show($routeParams.poll_id, function(data){
-		$scope.poll = data;
-	});
-
-	$scope.incVote = function(option){
-		pollFactory.vote($routeParams.poll_id, option, function(){
-			pollFactory.show($routeParams.poll_id, function(data){
-				$scope.poll = data;
-			});
+	$scope.addAnswer = function(){
+		userFactory.getUser(function(user){
+			if(!user.username){
+				$location.url('/index');
+			} else {
+				$scope.username = user.username;
+				$scope.newAnswer.author = $scope.username;
+				questionFactory.answer($routeParams.question_id, $scope.newAnswer, function(data){
+					if (data.errors){
+						console.log(data.errors);
+					} else {
+						$location.url('/question/'+$routeParams.question_id);
+					}
+				});
+			}
 		});
 	};
 
 })
+
 // 	console.log($routeParams);
 // 	friendsFactory.show($routeParams.friend_id, function(data){
 // 		$scope.friend = data;

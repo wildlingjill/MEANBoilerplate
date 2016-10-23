@@ -1,0 +1,13 @@
+<div>
+	<a href='#/'>Home</a>
+	<a href='#/question/{{question._id}}'>Go back to Question</a>
+	<a href='#/index'>Logout</a>
+	<h3>{{ question.question }}</h3>
+	<h5 ng-if='question.description'>{{ question.description }}</h5><br><br>
+	<form name="answerform">
+		Your Answer: <input type='text' name="answer" ng-model='newAnswer.answer' ng-minlength='5' required><span ng-show="answerform.answer.$touched && answerform.answer.$invalid">The question must be at least 5 characters long.</span><br><br>
+		Supporting details for your answer (optional): <input type='text' name="description" ng-model='newAnswer.description'><br><br>
+		<input type='submit' value='Submit' ng-click='addAnswer()'>
+		<button><a href='#/question/{{question._id}}'>Cancel</a></button>
+	</form>
+</div>

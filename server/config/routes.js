@@ -1,8 +1,10 @@
 var mongoose = require('mongoose');
 var users = require('../controllers/Users.js');
-var polls = require('../controllers/Polls.js')
+var questions = require('../controllers/Questions.js');
+var answers = require('../controllers/Answers.js');
 var User = mongoose.model('User');
-var Poll = mongoose.model('Poll');
+var Question = mongoose.model('Question');
+var Answer = mongoose.model('Answer');
 
 module.exports = function(app){
 
@@ -12,19 +14,19 @@ module.exports = function(app){
 
 
 	app.get('/dashboard', function(req, res){
-		polls.index(req, res);
+		questions.index(req, res);
 	});
 
-	app.delete('/delete/:poll_id', function(req, res){
-		polls.delete(req, res);
+	app.delete('/delete/:question_id', function(req, res){
+		questions.delete(req, res);
 	});
 
-	app.get('/poll/:poll_id', function(req, res){
-		polls.show(req,res);
+	app.get('/question/:question_id', function(req, res){
+		questions.show(req,res);
 	});
 
 	app.post('/create', function(req, res){
-		polls.create(req,res);
+		questions.create(req,res);
 	});
 
 	app.get('/user', function(req,res){
@@ -34,8 +36,12 @@ module.exports = function(app){
 		res.json(user);
 	});
 
-	app.post('/vote/:poll_id', function(req, res){
-		polls.vote(req,res);
+	app.post('/like/:question_id', function(req, res){
+		answers.like(req,res);
+	});
+
+	app.post('/question/:question_id/answer', function(req, res){
+		answers.create(req,res);
 	});
 
 
