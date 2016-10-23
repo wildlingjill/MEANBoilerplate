@@ -246,7 +246,7 @@ app.controller('viewQuestionController', function($scope, questionFactory, userF
 					if (data.errors){
 						console.log(data.errors);
 					} else {
-						$location.url('/question/'+$routeParams.question_id);
+						$location.url('/');
 					}
 				});
 			}
