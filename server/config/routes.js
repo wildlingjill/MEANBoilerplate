@@ -1,31 +1,56 @@
 var mongoose = require('mongoose');
-var friends = require('../controllers/{{ **CONTROLLER_NAME** }}');
-var Friend = mongoose.model('{{ **MODEL_NAME** }}');
+var users = require('../controllers/Users.js');
+var polls = require('../controllers/Polls.js')
+var User = mongoose.model('User');
+var Poll = mongoose.model('Poll');
 
 module.exports = function(app){
 
-	app.get('/friends', function(req, res){
-		friends.index(req, res);
+	app.post('/login', function(req, res){
+		users.login(req, res);
 	});
 
 
-	app.get('/friends/:id', function(req, res){
-		friends.show(req, res);
+	app.get('/dashboard', function(req, res){
+		polls.index(req, res);
+	});
+
+	app.delete('/delete/:poll_id', function(req, res){
+		polls.delete(req, res);
+	});
+
+	app.get('/poll/:poll_id', function(req, res){
+		polls.show(req,res);
+	});
+
+	app.post('/create', function(req, res){
+		polls.create(req,res);
+	});
+
+	app.get('/user', function(req,res){
+		var user = {
+			username: req.session.username
+		};
+		res.json(user);
+	});
+
+	app.post('/vote/:poll_id', function(req, res){
+		polls.vote(req,res);
 	});
 
 
-	app.post('/friends', function(req, res){
-		friends.create(req,res);
-	});
+	// app.post('/friends', function(req, res){
+	// 	friends.create(req,res);
+	// });
 
-	// app.put is to update an existing record, app.delete is to delete one
-	app.put('/friends/:id', function(req, res){
-		friends.update(req, res);
-	});
+	// // app.put is to update an existing record, app.delete is to delete one
+	// app.put('/friends/:id', function(req, res){
+	// 	friends.update(req, res);
+	// });
 
 
-	app.delete('/friends/:id', function(req, res){
-		friends.delete(req, res);
-	});
+	// app.delete('/friends/:id', function(req, res){
+	// 	friends.delete(req, res);
+	// });
 
 }

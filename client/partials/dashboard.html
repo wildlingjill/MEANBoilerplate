@@ -1,0 +1,24 @@
+<div>
+	<a href="#/create">Create a New Poll</a><br>
+	<a href="#/">Logout</a><br><br>
+	Search: <input type="text" ng-model="search">
+	<h3>Current Polls: </h3><br>
+	<div>
+	  	<table>
+			<tr>
+				<th>Name</th>
+				<th>Survey Question</th>
+				<th>Date Posted</th>
+				<th> Cookies</th>
+				<th>Action</th>
+			</tr>
+			<tr ng-repeat='poll in polls | filter: search'>
+				<td>{{ poll.author }}</td>
+				<td><a href='#/poll/{{poll._id}}'>{{ poll.question }}</a></td>
+				<td>{{ poll.createdAt | date: 'MM/dd/yyyy'}}</td>
+				<td>{{username}}</td>
+				<td ng-if="poll.author === username"><button ng-click="delete(poll)">Delete</button></td>
+			</tr>
+		</table>
+	</div>
+</div>

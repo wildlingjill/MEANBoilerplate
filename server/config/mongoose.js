@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 
 var models_path = path.join(__dirname, '../models');
-mongoose.connect('mongodb://localhost/{{ **DB_NAME** }}');
+mongoose.connect('mongodb://localhost/surveypolls');
 
 fs.readdirSync(models_path).forEach(function(file){
 	if(file.indexOf('.js') > 0){
